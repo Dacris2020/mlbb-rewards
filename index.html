@@ -6,6 +6,9 @@
   <title>MLBB Diamond Rewards</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+  <!-- SDK NATIVO DE MONETAG -->
+  <script src='//libtl.com/sdk.js' data-zone='12036204' data-sdk='show_12036204'></script>
+
   <style>
     :root {
       --primary: #f39c12;
@@ -74,11 +77,11 @@
     }
     .offerwall-iframe {
       width: 100%;
-      height: 480px;
+      height: 500px;
       border: none;
       border-radius: 8px;
       margin-top: 10px;
-      background: #111;
+      background: #12141d;
     }
   </style>
 </head>
@@ -107,10 +110,11 @@
     <h3>🔥 Muro de Ofertas CPAGrip</h3>
     <div class="card-box" style="text-align: center;">
       <p style="font-size: 13px; margin: 0 0 10px 0;">¡Completa encuestas o descarga apps para ganar cientos de puntos!</p>
-      <button class="btn-action btn-offerwall" onclick="toggleOfferwall()">📋 Ver / Ocultar Ofertas</button>
-      <div id="offerwall-box" style="display: none;">
-        <!-- Contenedor aislado mediante iframe para que no salte arriba -->
-        <iframe id="offerwall-frame" class="offerwall-iframe" src="about:blank"></iframe>
+      <button class="btn-action btn-offerwall" onclick="openOfferwall()">📋 Abrir Muro de Ofertas</button>
+      
+      <!-- Marco Aislado Estricto -->
+      <div id="offerwall-box" style="display: none; margin-top: 10px;">
+        <iframe id="offerwall-frame" class="offerwall-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
       </div>
     </div>
   </div>
@@ -145,7 +149,6 @@
     tg.expand();
 
     // --- CONFIGURACIÓN PRINCIPAL ---
-    const MONETAG_SMARTLINK = "PEGA_AQUI_TU_SMARTLINK_MONETAG"; 
     const BOT_TOKEN = "PEGA_AQUI_TU_BOT_TOKEN_DE_BOTFATHER";
     const ADMIN_CHAT_ID = "6129588092"; 
 
@@ -157,30 +160,69 @@
       localStorage.setItem('userPoints', points);
     }
 
-    // --- MOSTRAR / OCULTAR CPAGRIP DENTRO DEL CONTENEDOR ---
-    let offerwallLoaded = false;
-    function toggleOfferwall() {
+    // --- MONETAG: VER ANUNCIO NATIVO ---
+    function watchAd() {
+      if (typeof show_12036204 === 'function') {
+        show_12036204().then(() => {
+          points += 10;
+          updateDisplay();
+          alert("¡Gracias por ver el anuncio! Has recibido +10 Pts.");
+        }).catch(e => {
+          alert("No se pudo cargar el anuncio. Inténtalo más tarde.");
+        });
+      } else {
+        alert("El sistema de anuncios se está cargando. Intenta de nuevo en unos segundos.");
+      }
+    }
+
+    // --- MONETAG: RULETA DE LA SUERTE ---
+    function spinWheel() {
+      const lastSpin = localStorage.getItem('lastSpinDate');
+      const today = new Date().toDateString();
+
+      if (lastSpin === today) {
+        alert("Ya giraste la ruleta hoy. ¡Regresa mañana!");
+        return;
+      }
+
+      if (typeof show_12036204 === 'function') {
+        show_12036204().then(() => {
+          const prizes = [5, 10, 15, 20, 25, 50];
+          const prizeWon = prizes[Math.floor(Math.random() * prizes.length)];
+
+          points += prizeWon;
+          localStorage.setItem('lastSpinDate', today);
+          updateDisplay();
+          alert(`🎉 ¡Felicidades! Ganaste +${prizeWon} Pts.`);
+        }).catch(e => {
+          alert("Debes completar el anuncio para girar la ruleta.");
+        });
+      } else {
+        alert("El sistema de anuncios se está cargando. Intenta de nuevo.");
+      }
+    }
+
+    // --- CPAGRIP: MURO DE OFERTAS ---
+    function openOfferwall() {
       const box = document.getElementById('offerwall-box');
       const frame = document.getElementById('offerwall-frame');
       
       if (box.style.display === 'none') {
         box.style.display = 'block';
-        if (!offerwallLoaded) {
-          const doc = frame.contentWindow.document;
-          doc.open();
-          doc.write(`
-            <html>
-              <head>
-                <style>body { margin: 0; padding: 0; background: #12141d; color: #fff; }</style>
-              </head>
-              <body>
-                <script type="text/javascript" src="https://tundrafile.com/script_include.php?id=1918458"><\/script>
-              </body>
-            </html>
-          `);
-          doc.close();
-          offerwallLoaded = true;
-        }
+        frame.srcdoc = `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <style>
+                body { margin: 0; padding: 0; background: #12141d; color: #fff; font-family: sans-serif; }
+              </style>
+            </head>
+            <body>
+              <script type="text/javascript" src="https://tundrafile.com/script_include.php?id=1918458"><\/script>
+            </body>
+          </html>
+        `;
       } else {
         box.style.display = 'none';
       }
@@ -200,18 +242,6 @@
       }
     }
 
-    // --- ANUNCIOS ---
-    function watchAd() {
-      if (MONETAG_SMARTLINK.includes("PEGA_AQUI")) {
-        alert("¡Falta agregar tu SmartLink de Monetag!");
-      } else {
-        tg.openLink(MONETAG_SMARTLINK);
-      }
-      points += 10;
-      updateDisplay();
-      alert("¡Has recibido +10 Pts!");
-    }
-
     // --- RECOMPENSA DIARIA ---
     function dailyReward() {
       const lastClaim = localStorage.getItem('lastClaimDate');
@@ -225,29 +255,6 @@
         updateDisplay();
         alert("¡Recompensa diaria reclamada (+5 Pts)!");
       }
-    }
-
-    // --- RULETA DE LA SUERTE ---
-    function spinWheel() {
-      const lastSpin = localStorage.getItem('lastSpinDate');
-      const today = new Date().toDateString();
-
-      if (lastSpin === today) {
-        alert("Ya giraste la ruleta hoy. ¡Regresa mañana!");
-        return;
-      }
-
-      if (!MONETAG_SMARTLINK.includes("PEGA_AQUI")) {
-        tg.openLink(MONETAG_SMARTLINK);
-      }
-
-      const prizes = [5, 10, 15, 20, 25, 50];
-      const prizeWon = prizes[Math.floor(Math.random() * prizes.length)];
-
-      points += prizeWon;
-      localStorage.setItem('lastSpinDate', today);
-      updateDisplay();
-      alert(`🎉 ¡Felicidades! Ganaste +${prizeWon} Pts.`);
     }
 
     // --- REFERIDOS ---
