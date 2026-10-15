@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MLBB Diamond Rewards</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- SCRIPT DE CPAGRIP INCLUIDO -->
-  <script type="text/javascript" src="https://tundrafile.com/script_include.php?id=1918458"></script>
 
   <style>
     :root {
@@ -74,11 +72,13 @@
       border-radius: 10px;
       margin-top: 10px;
     }
-    /* Contenedor del Muro de Ofertas de CPAGrip */
-    #cpagrip-offerwall-container {
+    .offerwall-iframe {
       width: 100%;
-      min-height: 300px;
+      height: 480px;
+      border: none;
+      border-radius: 8px;
       margin-top: 10px;
+      background: #111;
     }
   </style>
 </head>
@@ -102,15 +102,15 @@
     <button class="btn-action" style="background:#3498db; color:#fff;" onclick="dailyReward()">🎁 Recompensa Diaria (+5 Pts)</button>
   </div>
 
-  <!-- SECCIÓN MURO DE OFERTAS DE CPAGRIP -->
+  <!-- SECCIÓN MURO DE OFERTAS CPAGRIP -->
   <div class="section">
     <h3>🔥 Muro de Ofertas CPAGrip</h3>
     <div class="card-box" style="text-align: center;">
       <p style="font-size: 13px; margin: 0 0 10px 0;">¡Completa encuestas o descarga apps para ganar cientos de puntos!</p>
       <button class="btn-action btn-offerwall" onclick="toggleOfferwall()">📋 Ver / Ocultar Ofertas</button>
-      <div id="offerwall-box" style="display: none; margin-top: 15px;">
-        <!-- Aquidibujará CPAGrip el widget -->
-        <div id="cpagrip-offerwall-container"></div>
+      <div id="offerwall-box" style="display: none;">
+        <!-- Contenedor aislado mediante iframe para que no salte arriba -->
+        <iframe id="offerwall-frame" class="offerwall-iframe" src="about:blank"></iframe>
       </div>
     </div>
   </div>
@@ -157,11 +157,30 @@
       localStorage.setItem('userPoints', points);
     }
 
-    // --- MOSTRAR / OCULTAR OFERTAS CPAGRIP ---
+    // --- MOSTRAR / OCULTAR CPAGRIP DENTRO DEL CONTENEDOR ---
+    let offerwallLoaded = false;
     function toggleOfferwall() {
       const box = document.getElementById('offerwall-box');
+      const frame = document.getElementById('offerwall-frame');
+      
       if (box.style.display === 'none') {
         box.style.display = 'block';
+        if (!offerwallLoaded) {
+          const doc = frame.contentWindow.document;
+          doc.open();
+          doc.write(`
+            <html>
+              <head>
+                <style>body { margin: 0; padding: 0; background: #12141d; color: #fff; }</style>
+              </head>
+              <body>
+                <script type="text/javascript" src="https://tundrafile.com/script_include.php?id=1918458"><\/script>
+              </body>
+            </html>
+          `);
+          doc.close();
+          offerwallLoaded = true;
+        }
       } else {
         box.style.display = 'none';
       }
