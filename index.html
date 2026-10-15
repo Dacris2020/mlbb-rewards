@@ -12,6 +12,9 @@
       --card-bg: #1e2230;
       --text: #ffffff;
       --accent: #27ae60;
+      --purple: #8e44ad;
+      --tiktok: #fe2c55;
+      --offerwall: #e67e22;
     }
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
@@ -57,15 +60,24 @@
       width: 100%;
       margin-top: 10px;
     }
+    .btn-tiktok { background-color: var(--tiktok); color: #fff; }
+    .btn-offerwall { background-color: var(--offerwall); color: #fff; }
+    .btn-purple { background-color: var(--purple); color: #fff; }
     .btn-redeem { background-color: var(--accent); color: #fff; }
     .section { width: 100%; margin-top: 20px; }
+    .card-box {
+      background-color: var(--card-bg);
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
 
   <div class="header">
     <h1>💎 MLBB Diamonds App</h1>
-    <p style="font-size: 12px; margin-top: 5px;">¡Gana puntos y canjea diamantes reales!</p>
+    <p style="font-size: 12px; margin-top: 5px;">¡Completa misiones y canjea diamantes!</p>
   </div>
 
   <div class="balance-card">
@@ -73,12 +85,42 @@
     <span class="balance" id="pointsDisplay">0 Pts</span>
   </div>
 
+  <!-- SECCIÓN MISIONES Y REDES -->
   <div class="section">
-    <h3>🚀 Tareas Disponibles</h3>
+    <h3>🚀 Misiones Rápidas</h3>
+    <button class="btn-action btn-tiktok" onclick="followTikTok()">🎵 Seguir en TikTok @sungodml (+30 Pts)</button>
     <button class="btn-action" onclick="watchAd()">📺 Ver Anuncio (+10 Pts)</button>
     <button class="btn-action" style="background:#3498db; color:#fff;" onclick="dailyReward()">🎁 Recompensa Diaria (+5 Pts)</button>
   </div>
 
+  <!-- SECCIÓN MURO DE OFERTAS (CPA / CPALEAD / ADWORKMEDIA) -->
+  <div class="section">
+    <h3>🔥 Muro de Ofertas Premium</h3>
+    <div class="card-box" style="text-align: center;">
+      <p style="font-size: 13px; margin: 0 0 10px 0;">¡Completa encuestas o descarga apps para ganar cientos de puntos rápido!</p>
+      <button class="btn-action btn-offerwall" onclick="openOfferwall()">📋 Abrir Muro de Ofertas</button>
+    </div>
+  </div>
+
+  <!-- SECCIÓN RULETA -->
+  <div class="section">
+    <h3>🎡 Ruleta de la Suerte</h3>
+    <div class="card-box" style="text-align: center;">
+      <p style="font-size: 13px; margin: 0 0 10px 0;">¡Prueba tu suerte una vez al día!</p>
+      <button class="btn-action btn-purple" onclick="spinWheel()">🎰 Girar Ruleta</button>
+    </div>
+  </div>
+
+  <!-- SECCIÓN REFERIDOS -->
+  <div class="section">
+    <h3>👥 Invita y Gana</h3>
+    <div class="card-box" style="text-align: center;">
+      <p style="font-size: 13px; margin: 0 0 10px 0;">Gana +20 Pts por cada amigo que se una a la app.</p>
+      <button class="btn-action" style="background: #27ae60; color: #fff;" onclick="shareInviteLink()">📩 Compartir Link</button>
+    </div>
+  </div>
+
+  <!-- SECCIÓN CANJE -->
   <div class="section">
     <h3>🛒 Canjear Diamantes</h3>
     <button class="btn-action btn-redeem" onclick="redeem(1000, 50)">💎 50 Diamantes (1,000 Pts)</button>
@@ -90,8 +132,8 @@
     tg.expand();
 
     // --- CONFIGURACIÓN PRINCIPAL ---
-    // Reemplaza los dos valores de abajo con tu SmartLink de Monetag y el Token que te dio BotFather
     const MONETAG_SMARTLINK = "PEGA_AQUI_TU_SMARTLINK_MONETAG"; 
+    const OFFERWALL_URL = "PEGA_AQUI_TU_ENLACE_DE_CPALEAD_O_OFFERWALL"; // Ejemplo: Tu link de CPALead Offerwall
     const BOT_TOKEN = "PEGA_AQUI_TU_BOT_TOKEN_DE_BOTFATHER";
     const ADMIN_CHAT_ID = "6129588092"; 
 
@@ -103,9 +145,33 @@
       localStorage.setItem('userPoints', points);
     }
 
+    // --- SEGUIR EN TIKTOK ---
+    function followTikTok() {
+      const followed = localStorage.getItem('followedTikTok');
+      if (followed) {
+        alert("Ya reclamaste los puntos por seguir en TikTok.");
+      } else {
+        tg.openLink("https://www.tiktok.com/@sungodml");
+        points += 30;
+        localStorage.setItem('followedTikTok', 'true');
+        updateDisplay();
+        alert("¡Gracias por seguir a @sungodml! Has recibido +30 Pts.");
+      }
+    }
+
+    // --- MURO DE OFERTAS ---
+    function openOfferwall() {
+      if (OFFERWALL_URL.includes("PEGA_AQUI")) {
+        alert("¡Configura tu enlace de Muro de Ofertas (Offerwall) en el código primero!");
+      } else {
+        tg.openLink(OFFERWALL_URL);
+      }
+    }
+
+    // --- ANUNCIOS ---
     function watchAd() {
       if (MONETAG_SMARTLINK.includes("PEGA_AQUI")) {
-        alert("¡Recuerda pegar tu SmartLink de Monetag en el código!");
+        alert("¡Falta agregar tu SmartLink de Monetag!");
       } else {
         tg.openLink(MONETAG_SMARTLINK);
       }
@@ -114,12 +180,13 @@
       alert("¡Has recibido +10 Pts!");
     }
 
+    // --- RECOMPENSA DIARIA ---
     function dailyReward() {
       const lastClaim = localStorage.getItem('lastClaimDate');
       const today = new Date().toDateString();
 
       if (lastClaim === today) {
-        alert("Ya reclamaste tu recompensa de hoy. ¡Vuelve mañana!");
+        alert("Ya reclamaste tu recompensa diaria. ¡Regresa mañana!");
       } else {
         points += 5;
         localStorage.setItem('lastClaimDate', today);
@@ -128,6 +195,37 @@
       }
     }
 
+    // --- RULETA DE LA SUERTE ---
+    function spinWheel() {
+      const lastSpin = localStorage.getItem('lastSpinDate');
+      const today = new Date().toDateString();
+
+      if (lastSpin === today) {
+        alert("Ya giraste la ruleta hoy. ¡Regresa mañana!");
+        return;
+      }
+
+      if (!MONETAG_SMARTLINK.includes("PEGA_AQUI")) {
+        tg.openLink(MONETAG_SMARTLINK);
+      }
+
+      const prizes = [5, 10, 15, 20, 25, 50];
+      const prizeWon = prizes[Math.floor(Math.random() * prizes.length)];
+
+      points += prizeWon;
+      localStorage.setItem('lastSpinDate', today);
+      updateDisplay();
+      alert(`🎉 ¡Felicidades! Ganaste +${prizeWon} Pts.`);
+    }
+
+    // --- REFERIDOS ---
+    function shareInviteLink() {
+      const botUsername = "mlbb_diamonds_dacris_bot";
+      const inviteUrl = `https://t.me/share/url?url=https://t.me/${botUsername}/App&text=¡Entra%20a%20ganar%20diamantes%20gratis%20para%20Mobile%20Legends!`;
+      tg.openTelegramLink(inviteUrl);
+    }
+
+    // --- CANJE DE DIAMANTES ---
     function redeem(cost, diamonds) {
       if (points >= cost) {
         const mlbbID = prompt("Ingresa tu ID de MLBB y Zone ID (Ej: 12345678 1234):");
