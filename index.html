@@ -89,8 +89,11 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // REEMPLAZA ESTE ENLACE POR TU SMARTLINK DE MONETAG
-    const MONETAG_SMARTLINK = "https://tu-enlace-de-monetag.com";
+    // --- CONFIGURACIÓN PRINCIPAL ---
+    // Reemplaza los dos valores de abajo con tu SmartLink de Monetag y el Token que te dio BotFather
+    const MONETAG_SMARTLINK = "PEGA_AQUI_TU_SMARTLINK_MONETAG"; 
+    const BOT_TOKEN = "PEGA_AQUI_TU_BOT_TOKEN_DE_BOTFATHER";
+    const ADMIN_CHAT_ID = "6129588092"; 
 
     let points = parseInt(localStorage.getItem('userPoints')) || 0;
     updateDisplay();
@@ -101,8 +104,8 @@
     }
 
     function watchAd() {
-      if (MONETAG_SMARTLINK.includes("tu-enlace-de-monetag")) {
-        alert("¡Recuerda configurar tu enlace de Monetag en el código!");
+      if (MONETAG_SMARTLINK.includes("PEGA_AQUI")) {
+        alert("¡Recuerda pegar tu SmartLink de Monetag en el código!");
       } else {
         tg.openLink(MONETAG_SMARTLINK);
       }
@@ -129,9 +132,24 @@
       if (points >= cost) {
         const mlbbID = prompt("Ingresa tu ID de MLBB y Zone ID (Ej: 12345678 1234):");
         if (mlbbID) {
+          const user = tg.initDataUnsafe.user || {};
+          const username = user.username ? "@" + user.username : user.first_name || "Desconocido";
+
+          const text = `🚨 *NUEVO CANJE SOLICITADO*\n\n👤 **Usuario:** ${username}\n💎 **Premio:** ${diamonds} Diamantes\n🎮 **ID MLBB:** \`${mlbbID}\``;
+          
+          fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              chat_id: ADMIN_CHAT_ID,
+              text: text,
+              parse_mode: "Markdown"
+            })
+          });
+
           points -= cost;
           updateDisplay();
-          alert(`Solicitud registrada para ${diamonds} diamantes al ID: ${mlbbID}. ¡Procesando!`);
+          alert(`¡Solicitud enviada con éxito! Revisa tu cuenta pronto.`);
         }
       } else {
         alert(`Necesitas ${cost} Pts para canjear este paquete.`);
